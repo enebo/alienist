@@ -1,0 +1,10 @@
+!.gitignore
+build
+target
+dist
+*.orig
+*.rej
+*~
+nbproject/private
+pkg
+.ruby-version
