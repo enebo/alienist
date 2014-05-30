@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'alienist/parser'
+require 'alienist/reader'
+
+debug = 0
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: alienist [options] dump_file"
+  opts.on("-d", "--debug value", "turn on debugging") do |v|
+    debug = v.to_i
+  end
+end
+opts.parse!(ARGV)
+
+File.open(ARGV.shift, "rb") do |io|
+  dump = Alienist::Parser.new Alienist::Reader.new(io, debug), debug
+  dump.parse
+#  p dump
+end
