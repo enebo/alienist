@@ -1,6 +1,9 @@
 module Alienist
   class JavaStatic
-    def initialize(*r)
+    attr_reader :field, :value
+
+    def initialize(field, value)
+      @field, @value = field, value
     end
   end
 end

@@ -23,8 +23,8 @@ module Alienist
     GC_ROOT_NATIVE_STACK, GC_ROOT_STICKY_CLASS = 0x04, 0x05
     GC_ROOT_THREAD_BLOCK, GC_ROOT_MONITOR_USED = 0x06, 0x07
 
-    def initialize(io, debug=0)
-      @io, @debug = io, debug
+    def initialize(io, snapshot, debug=0)
+      @io, @snapshot, @debug = io, snapshot, debug
       @names = Hash.new { |hash, k| "unresolved class #{k}"  }
       @names[0] = "" # For 0 id
       @class_name_from_id = {}
@@ -99,7 +99,7 @@ module Alienist
           case(type)
           when GC_ROOT_UNKNOWN then
             puts "Subloading GC_ROOT_UNKNOWN" if @debug > 0
-            add_root @io.read_id, 0, UNKNOWN, ""
+            @snapshot.add_root @io.read_id, 0, UNKNOWN, ""
           when GC_ROOT_THREAD_OBJ then
             puts "Subloading GC_ROOT_THREAD_OBJ" if @debug > 0
             id, thread_seq, stack_seq = @io.read_id, @io.read_int, @io.read_int
@@ -107,7 +107,7 @@ module Alienist
           when GC_ROOT_JNI_GLOBAL then
             puts "Subloading GC_ROOT_JNI_GLOBAL" if @debug > 0
             id, _ = @io.read_id, @io.read_id # ignored global_ref_id
-            add_root @io.read_id, 0, NATIVE_STATIC, ""
+            @snapshot.add_root @io.read_id, 0, NATIVE_STATIC, ""
           when GC_ROOT_JNI_LOCAL then
             puts "Subloading GC_ROOT_JNI_LOCAL" if @debug > 0
             id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
@@ -156,8 +156,8 @@ module Alienist
       class_name_id = @io.read_id
 
       name = @names[class_name_id].gsub('/', '.')
-      @class_name_from_id[class_name_id] = name
-      puts "ID: #{class_name_id}, NAME: #{name}" if @debug > 3
+      @class_name_from_id[class_id] = name
+      puts "ID: #{class_name_id}, NAME: #{name}"# if @debug > 3
       @class_name_from_serial[class_id] = name
     end
 
@@ -179,7 +179,10 @@ module Alienist
     def read_instance_dump
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
-        @io.skip_bytes bytes_following, "instance_dump" # FIXME: Process
+        @io.skip_bytes bytes_following, "instance_dump" 
+        # FIXME: Process Unclear if perhaps I should process greedily
+        # OR save offset and keep io open OR save blob in DB as part of this
+        @snapshot.add_instance(id, serial, class_id, bytes_following)
       end
     end
 
@@ -195,7 +198,7 @@ module Alienist
         statics = read_static_fields(@io.read_unsigned_short)
         fields = read_fields(@io.read_unsigned_short)
       
-        add_class id, name, super_id, classloader_id, signers_id, 
+        @snapshot.add_class id, name, super_id, classloader_id, signers_id, 
             protection_domain_id, statics, fields, instance_size
       end
     end
@@ -211,7 +214,7 @@ module Alienist
           type, _ = signature_for type_id
           field_name = @names[name_id]
           value = read_value_for(type)
-          statics << JavaStatic.new(JavaField.new(field_name, type), value)
+          statics << JavaStatic.new(JavaField.new(name_id, field_name, type), value)
         end
       end
     end
@@ -221,7 +224,7 @@ module Alienist
         count.times do |i|   # process all static fields
           name_id, type_id = @io.read_id, @io.read_byte
           type, _ = signature_for type_id
-          fields << JavaField.new(@names[name_id], type)
+          fields << JavaField.new(name_id, @names[name_id], type)
         end
       end
     end
@@ -244,12 +247,6 @@ module Alienist
         @io.read_unsigned_short # index - skip
         @io.read_value_for 0    # value - skip
       end
-    end
-
-    def add_class(*r)
-    end
-
-    def add_root(*r)
     end
 
     def signature_for(id)

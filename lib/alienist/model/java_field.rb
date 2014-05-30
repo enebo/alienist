@@ -1,6 +1,9 @@
 module Alienist
   class JavaField
-    def initialize(*r)
+    attr_reader :id, :name, :type
+
+    def initialize(id, name, type)
+      @id, @name, @type = id, name, type
     end
   end
 end
