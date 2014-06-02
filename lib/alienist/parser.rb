@@ -38,7 +38,7 @@ module Alienist
       version = read_version_header
       @io.identifier_size = @io.read_int
       creation_date = @io.read_date
-      
+      @snapshot.db.transaction do
       loop do
         type = @io.read_type
         return unless type # EOF
@@ -72,6 +72,7 @@ module Alienist
           @io.skip_bytes length, "parse_else"
         end
       end
+      end
     end
 
     def read_frame(length)
@@ -94,60 +95,60 @@ module Alienist
 
     def read_heap_dump(amount)
       while amount > 0
-        amount -= @io.track_amount_read do
-          type = @io.read_type
-          case(type)
-          when GC_ROOT_UNKNOWN then
-            puts "Subloading GC_ROOT_UNKNOWN" if @debug > 0
-            @snapshot.add_root @io.read_id, 0, UNKNOWN, ""
-          when GC_ROOT_THREAD_OBJ then
-            puts "Subloading GC_ROOT_THREAD_OBJ" if @debug > 0
-            id, thread_seq, stack_seq = @io.read_id, @io.read_int, @io.read_int
-            @thread_objects[thread_seq] = [id, stack_seq]
-          when GC_ROOT_JNI_GLOBAL then
-            puts "Subloading GC_ROOT_JNI_GLOBAL" if @debug > 0
-            id, _ = @io.read_id, @io.read_id # ignored global_ref_id
-            @snapshot.add_root @io.read_id, 0, NATIVE_STATIC, ""
-          when GC_ROOT_JNI_LOCAL then
-            puts "Subloading GC_ROOT_JNI_LOCAL" if @debug > 0
-            id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
-            @thread_objects[thread_seq]
-            # FIXME: Missing logic to store and retrieve
-          when GC_ROOT_JAVA_FRAME then
-            puts "Subloading GC_ROOT_JAVA_FRAME" if @debug > 0
-            id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
-            # FIXME: Missing logic to store and retrieve
-          when GC_ROOT_NATIVE_STACK then
-            puts "Subloading GC_ROOT_NATIVE_STACK" if @debug > 0
-            id, thread_seq= @io.read_id, @io.read_int
-            # FIXME: Missing logic to store and retrieve
-          when GC_ROOT_STICKY_CLASS then
-            puts "Subloading GC_ROOT_STICKY_CLASS" if @debug > 0
-            id = @io.read_id
-            # FIXME: Missing logic to store and retrieve
-          when GC_ROOT_THREAD_BLOCK then
-            puts "Subloading GC_ROOT_THREAD_BLOCK" if @debug > 0
-            id, thread_seq = @io.read_id, @io.read_int
-            # FIXME: Missing logic to store and retrieve
-          when GC_ROOT_MONITOR_USED then
-            puts "Subloading GC_ROOT_MONITOR_USED" if @debug > 0
-            id = @io.read_id
-          when CLASS_DUMP then
-            puts "Subloading CLASS_DUMP" if @debug > 0
-            read_class_dump
-          when INSTANCE_DUMP then
-            puts "Subloading INSTANCE_DUMP" if @debug > 0
-            read_instance_dump
-          when OBJ_ARRAY_DUMP then
-            puts "Subloading OBJ_ARRAY_DUMP" if @debug > 0
-            read_array_dump
-          when PRIM_ARRAY_DUMP then
-            puts "Subloading PRIM_ARRAY_DUMP" if @debug > 0
-            read_primitive_array_dump
-          else
-            puts "Subloading NOTHING?" if @debug > 0
-          end
+        pos = @io.pos
+        type = @io.read_type
+        case(type)
+        when GC_ROOT_UNKNOWN then
+#          puts "Subloading GC_ROOT_UNKNOWN" if @debug > 0
+          @snapshot.add_root @io.read_id, 0, UNKNOWN, ""
+        when GC_ROOT_THREAD_OBJ then
+#          puts "Subloading GC_ROOT_THREAD_OBJ" if @debug > 0
+          id, thread_seq, stack_seq = @io.read_id, @io.read_int, @io.read_int
+          @thread_objects[thread_seq] = [id, stack_seq]
+        when GC_ROOT_JNI_GLOBAL then
+#          puts "Subloading GC_ROOT_JNI_GLOBAL" if @debug > 0
+          id, _ = @io.read_id, @io.read_id # ignored global_ref_id
+          @snapshot.add_root @io.read_id, 0, NATIVE_STATIC, ""
+        when GC_ROOT_JNI_LOCAL then
+#          puts "Subloading GC_ROOT_JNI_LOCAL" if @debug > 0
+          id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
+          @thread_objects[thread_seq]
+          # FIXME: Missing logic to store and retrieve
+        when GC_ROOT_JAVA_FRAME then
+#          puts "Subloading GC_ROOT_JAVA_FRAME" if @debug > 0
+          id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
+          # FIXME: Missing logic to store and retrieve
+        when GC_ROOT_NATIVE_STACK then
+#          puts "Subloading GC_ROOT_NATIVE_STACK" if @debug > 0
+          id, thread_seq= @io.read_id, @io.read_int
+          # FIXME: Missing logic to store and retrieve
+        when GC_ROOT_STICKY_CLASS then
+#          puts "Subloading GC_ROOT_STICKY_CLASS" if @debug > 0
+          id = @io.read_id
+          # FIXME: Missing logic to store and retrieve
+        when GC_ROOT_THREAD_BLOCK then
+#          puts "Subloading GC_ROOT_THREAD_BLOCK" if @debug > 0
+          id, thread_seq = @io.read_id, @io.read_int
+          # FIXME: Missing logic to store and retrieve
+        when GC_ROOT_MONITOR_USED then
+#          puts "Subloading GC_ROOT_MONITOR_USED" if @debug > 0
+          id = @io.read_id
+        when CLASS_DUMP then
+#          puts "Subloading CLASS_DUMP" if @debug > 0
+          read_class_dump
+        when INSTANCE_DUMP then
+#          puts "Subloading INSTANCE_DUMP" if @debug > 0
+          read_instance_dump
+        when OBJ_ARRAY_DUMP then
+#          puts "Subloading OBJ_ARRAY_DUMP" if @debug > 0
+          read_array_dump
+        when PRIM_ARRAY_DUMP then
+#          puts "Subloading PRIM_ARRAY_DUMP" if @debug > 0
+          read_primitive_array_dump
+        else
+          puts "Subloading NOTHING?" if @debug > 0
         end
+        amount -= @io.pos - pos
       end
     end
 
@@ -157,7 +158,7 @@ module Alienist
 
       name = @names[class_name_id].gsub('/', '.')
       @class_name_from_id[class_id] = name
-      puts "ID: #{class_name_id}, NAME: #{name}"# if @debug > 3
+      puts "ID: #{class_name_id}, NAME: #{name}" if @debug > 3
       @class_name_from_serial[class_id] = name
     end
 
@@ -208,25 +209,25 @@ module Alienist
     end
 
     def read_static_fields(count)
-      [].tap do |statics|
-        count.times do |i|   # process all static fields
-          name_id, type_id = @io.read_id, @io.read_byte
-          type, _ = signature_for type_id
-          field_name = @names[name_id]
-          value = read_value_for(type)
-          statics << JavaStatic.new(JavaField.new(name_id, field_name, type), value)
-        end
+      statics = []
+      count.times do   # process all static fields
+        name_id, type_id = @io.read_id, @io.read_byte
+        type, _ = signature_for type_id
+        field_name = @names[name_id]
+        value = read_value_for(type)
+        statics << JavaStatic.new(JavaField.new(name_id, field_name, type), value)
       end
+      statics
     end
 
     def read_fields(count)
-      [].tap do |fields|
-        count.times do |i|   # process all static fields
-          name_id, type_id = @io.read_id, @io.read_byte
-          type, _ = signature_for type_id
-          fields << JavaField.new(name_id, @names[name_id], type)
-        end
+      fields = []
+      count.times do       # process all static fields
+        name_id, type_id = @io.read_id, @io.read_byte
+        type, _ = signature_for type_id
+        fields << JavaField.new(name_id, @names[name_id], type)
       end
+      fields
     end
 
     def read_version_header
@@ -243,7 +244,7 @@ module Alienist
     end
 
     def skip_constant_pool_entries(count)
-      count.times do |i|        # skip constant pool entries
+      count.times do            # skip constant pool entries
         @io.read_unsigned_short # index - skip
         @io.read_value_for 0    # value - skip
       end

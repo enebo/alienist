@@ -2,13 +2,17 @@ require 'sequel'
 
 module Alienist
   class SequelSnapshot
-    def initialize(db_string="jdbc:sqlite:db")
+    attr_reader :db
+
+    def initialize(db_string="jdbc:h2:./ddb;create=true")
+    #def initialize(db_string="jdbc:sqlite:db")
       @db = Sequel.connect(db_string)
       create_schema      
     end
 
     def add_instance(id, serial, class_id, bytes_following)
-      @db[:instances].insert(id: id, class_id: class_id)
+      $ps1.call(id: id, class_id: class_id)
+#      @db[:instances].insert(id: id, class_id: class_id)
     end
 
     def add_root(*r)
@@ -16,11 +20,18 @@ module Alienist
 
     def add_class(id, name, super_id, classloader_id, signers_id,
                   protection_domain_id, static_fields, fields, instance_size)
-      @db[:classes].insert(id: id, name: name, super_id: super_id, 
+#      begin
+      # @db[:classes].insert(id: id, name: name, super_id: super_id, 
+      $ps2.call(id: id, name: name, super_id: super_id, 
                            classloader_id: classloader_id, 
                            signers_id: signers_id, 
                            protection_domain_id: protection_domain_id,
                            instance_size: instance_size)
+      # rescue Sequel::DatabaseError
+      #   puts "ID: #{id}, SID: #{super_id}, CID: #{classloader_id}"
+      #   puts "SGN_ID: #{signers_id}, PDID: #{protection_domain_id}"
+      #   puts "IS: #{instance_size}"
+#      end
 
       # static_fields.each do |field|
       #   @db[:static_fields].insert(id: field.field.id, class_id: id,
@@ -42,34 +53,39 @@ module Alienist
       @db.drop_table :instances if @db.table_exists?(:instances)
 
       @db.create_table(:instances) do
-        primary_key :id
-        Int :class_id, null: false
+        Bignum :id, primary_key: true
+        Bignum :class_id, null: false
       end
 
+      $ps1 = @db[:instances].prepare(:insert, :insert_p, :id=>:$id, :class_id=>:$class_id)
+
       @db.create_table(:fields) do
-        primary_key :id
-        Int :class_id, null: false
+        Bignum :id, primary_key: true
+        Bignum :class_id, null: false
         String :name, null: false
         String :type, null: false
       end
 
       @db.create_table(:static_fields) do
-        primary_key :id
-        Int :class_id, null: false
+        Bignum :id, primary_key: true
+        Bignum :class_id, null: false
         String :name, null: false
         String :type, null: false
       end
       # FIXME: need to store value and deal with heap, object_ref, and value
 
       @db.create_table(:classes) do
-        primary_key :id
+        Bignum :id, primary_key: true
         String :name, null: false
-        Int :super_id, null: false
-        Int :classloader_id, null: false
-        Int :signers_id, null: false
-        Int :protection_domain_id, null: false
-        Int :instance_size, null: false
+        Bignum :super_id, null: false
+        Bignum :classloader_id, null: false
+        Bignum :signers_id, null: false
+        Bignum :protection_domain_id, null: false
+        Bignum :instance_size, null: false
       end
+
+      $ps2 = @db[:classes].prepare(:insert, :insert_p, :id =>:$id, :name => :$name, :super_id => :$super_id, :classloader_id =>:$classloader_id, :signers_id => :$signers_id, :protection_domain_id =>:$protection_domain_id, :instance_size =>:$instance_size)
+
     end
   end
 end

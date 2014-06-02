@@ -18,9 +18,9 @@ module Alienist
     end
 
     def read(amount, label="debug")
-      @io.read(amount).tap do |str|
-        puts "#{label}: '#{str}' (#{str.length})" if @debug >= 9 && str
-      end
+      str = @io.read(amount)
+      puts "#{label}: '#{str}' (#{str.length})" if @debug >= 9 && str
+      str
     end
 
     def read_boolean
@@ -29,9 +29,9 @@ module Alienist
     end
 
     def read_byte(label="byte")
-      read(1, label).tap do |byte|
-        return nil unless byte
-      end.unpack('C')[0]
+      byte = read(1, label)
+      return nil unless byte
+      byte.unpack('C')[0]
     end
 
     def read_bytes(amount)
@@ -51,11 +51,11 @@ module Alienist
     end
 
     def read_ids(number_of_ids=1)
-      [].tap do |ids|
-        number_of_ids.times do
-          ids << read_id
-        end
+      ids = []
+      number_of_ids.times do
+        ids << read_id
       end
+      ids
     end
 
     def read_int(label="int")
@@ -93,12 +93,6 @@ module Alienist
     def skip_bytes(amount, label="")
       puts "skipping #{amount} for #{label}" if @debug >= 7
       @io.seek(amount, IO::SEEK_CUR)
-    end
-
-    def track_amount_read
-      original_offset = @io.pos
-      yield original_offset
-      @io.pos - original_offset
     end
   end
 end

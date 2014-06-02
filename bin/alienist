@@ -3,21 +3,33 @@
 require 'optparse'
 require 'alienist/parser'
 require 'alienist/reader'
+require 'alienist/snapshot/dumb_snapshot'
 require 'alienist/snapshot/sequel_snapshot'
 
 debug = 0
+
+BACKENDS = {
+  'dumb' => Alienist::DumbSnapshot,
+  'sequel' => Alienist::SequelSnapshot
+}
+
+backend = BACKENDS['sequel']
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: alienist [options] dump_file"
   opts.on("-d", "--debug value", "turn on debugging") do |v|
     debug = v.to_i
   end
+  opts.on("-b", "--backend name", "Backend: #{BACKENDS.keys.join(', ')}") do |v|
+    backend = BACKENDS[v]
+    opts.usage "Valid backends: #{BACKENDS.keys.join(', ')}" unless backend
+  end
 end
 opts.parse!(ARGV)
 
 File.open(ARGV.shift, "rb") do |io|
   reader = Alienist::Reader.new(io, debug)
-  snapshot = Alienist::SequelSnapshot.new
+  snapshot = Alienist::DumbSnapshot.new
   dump = Alienist::Parser.new reader, snapshot, debug
   dump.parse
 #  p dump
