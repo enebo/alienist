@@ -29,8 +29,6 @@ opts.parse!(ARGV)
 
 File.open(ARGV.shift, "rb") do |io|
   reader = Alienist::Reader.new(io, debug)
-  snapshot = Alienist::DumbSnapshot.new
-  dump = Alienist::Parser.new reader, snapshot, debug
+  dump = Alienist::Parser.new reader, backend.new, debug
   dump.parse
-#  p dump
 end

@@ -99,54 +99,54 @@ module Alienist
         type = @io.read_type
         case(type)
         when GC_ROOT_UNKNOWN then
-#          puts "Subloading GC_ROOT_UNKNOWN" if @debug > 0
+          puts "Subloading GC_ROOT_UNKNOWN" if @debug > 0
           @snapshot.add_root @io.read_id, 0, UNKNOWN, ""
         when GC_ROOT_THREAD_OBJ then
-#          puts "Subloading GC_ROOT_THREAD_OBJ" if @debug > 0
+          puts "Subloading GC_ROOT_THREAD_OBJ" if @debug > 0
           id, thread_seq, stack_seq = @io.read_id, @io.read_int, @io.read_int
           @thread_objects[thread_seq] = [id, stack_seq]
         when GC_ROOT_JNI_GLOBAL then
-#          puts "Subloading GC_ROOT_JNI_GLOBAL" if @debug > 0
+          puts "Subloading GC_ROOT_JNI_GLOBAL" if @debug > 0
           id, _ = @io.read_id, @io.read_id # ignored global_ref_id
           @snapshot.add_root @io.read_id, 0, NATIVE_STATIC, ""
         when GC_ROOT_JNI_LOCAL then
-#          puts "Subloading GC_ROOT_JNI_LOCAL" if @debug > 0
+          puts "Subloading GC_ROOT_JNI_LOCAL" if @debug > 0
           id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
           @thread_objects[thread_seq]
           # FIXME: Missing logic to store and retrieve
         when GC_ROOT_JAVA_FRAME then
-#          puts "Subloading GC_ROOT_JAVA_FRAME" if @debug > 0
+          puts "Subloading GC_ROOT_JAVA_FRAME" if @debug > 0
           id, thread_seq, depth = @io.read_id, @io.read_int, @io.read_int
           # FIXME: Missing logic to store and retrieve
         when GC_ROOT_NATIVE_STACK then
-#          puts "Subloading GC_ROOT_NATIVE_STACK" if @debug > 0
+          puts "Subloading GC_ROOT_NATIVE_STACK" if @debug > 0
           id, thread_seq= @io.read_id, @io.read_int
           # FIXME: Missing logic to store and retrieve
         when GC_ROOT_STICKY_CLASS then
-#          puts "Subloading GC_ROOT_STICKY_CLASS" if @debug > 0
+          puts "Subloading GC_ROOT_STICKY_CLASS" if @debug > 0
           id = @io.read_id
           # FIXME: Missing logic to store and retrieve
         when GC_ROOT_THREAD_BLOCK then
-#          puts "Subloading GC_ROOT_THREAD_BLOCK" if @debug > 0
+          puts "Subloading GC_ROOT_THREAD_BLOCK" if @debug > 0
           id, thread_seq = @io.read_id, @io.read_int
           # FIXME: Missing logic to store and retrieve
         when GC_ROOT_MONITOR_USED then
-#          puts "Subloading GC_ROOT_MONITOR_USED" if @debug > 0
+          puts "Subloading GC_ROOT_MONITOR_USED" if @debug > 0
           id = @io.read_id
         when CLASS_DUMP then
-#          puts "Subloading CLASS_DUMP" if @debug > 0
+          puts "Subloading CLASS_DUMP" if @debug > 0
           read_class_dump
         when INSTANCE_DUMP then
-#          puts "Subloading INSTANCE_DUMP" if @debug > 0
+          puts "Subloading INSTANCE_DUMP" if @debug > 0
           read_instance_dump
         when OBJ_ARRAY_DUMP then
-#          puts "Subloading OBJ_ARRAY_DUMP" if @debug > 0
+          puts "Subloading OBJ_ARRAY_DUMP" if @debug > 0
           read_array_dump
         when PRIM_ARRAY_DUMP then
-#          puts "Subloading PRIM_ARRAY_DUMP" if @debug > 0
+          puts "Subloading PRIM_ARRAY_DUMP" if @debug > 0
           read_primitive_array_dump
         else
-          puts "Subloading NOTHING?" if @debug > 0
+          puts "Subloading NOTHING? #{type}" if @debug > 0
         end
         amount -= @io.pos - pos
       end
