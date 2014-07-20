@@ -27,7 +27,11 @@ opts = OptionParser.new do |opts|
 end
 opts.parse!(ARGV)
 
-File.open(ARGV.shift, "rb") do |io|
+filename = ARGV.shift
+
+abort "No filename provided" unless filename
+
+File.open(filename, "rb") do |io|
   reader = Alienist::Reader.new(io, debug)
   dump = Alienist::Parser.new reader, backend.new, debug
   dump.parse

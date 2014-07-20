@@ -1,14 +1,7 @@
-require 'alienist/model/java_boolean'
-require 'alienist/model/java_byte'
-require 'alienist/model/java_char'
-require 'alienist/model/java_double'
-require 'alienist/model/java_field'
-require 'alienist/model/java_float'
-require 'alienist/model/java_int'
-require 'alienist/model/java_long'
-require 'alienist/model/java_object_ref'
-require 'alienist/model/java_short'
-require 'alienist/model/java_static'
+require 'alienist/model/java/java_primitives'
+require 'alienist/model/java/java_field'
+require 'alienist/model/java/java_object_ref'
+require 'alienist/model/java/java_static'
 
 module Alienist
   class Parser
@@ -180,7 +173,10 @@ module Alienist
     def read_instance_dump
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
-        @io.skip_bytes bytes_following, "instance_dump" 
+
+        puts "Instance of: #{@class_name_from_id[class_id]}"
+        @io.skip_bytes bytes_following, "instance_dump"
+
         # FIXME: Process Unclear if perhaps I should process greedily
         # OR save offset and keep io open OR save blob in DB as part of this
         @snapshot.add_instance(id, serial, class_id, bytes_following)
@@ -215,7 +211,7 @@ module Alienist
         type, _ = signature_for type_id
         field_name = @names[name_id]
         value = read_value_for(type)
-        statics << JavaStatic.new(JavaField.new(name_id, field_name, type), value)
+        statics << Alienist::Model::Java::JavaStatic.new(Alienist::Model::Java::JavaField.new(name_id, field_name, type), value)
       end
       statics
     end
@@ -225,7 +221,7 @@ module Alienist
       count.times do       # process all static fields
         name_id, type_id = @io.read_id, @io.read_byte
         type, _ = signature_for type_id
-        fields << JavaField.new(name_id, @names[name_id], type)
+        fields << Alienist::Model::Java::JavaField.new(name_id, @names[name_id], type)
       end
       fields
     end
@@ -265,15 +261,15 @@ module Alienist
     TYPES      = [nil, nil, 'L', nil, 'Z', 'C', 'F', 'D', 'B', 'S', 'I', 'J']
     TYPE_SIZES = [nil, nil, nil, nil,  1,   2,   4,   8,   1,   2,   4,   8]
     TYPE_READS = {
-      'L' => Alienist::JavaObjectRef, 
-      'Z' => Alienist::JavaBoolean, 
-      'C' => Alienist::JavaChar,
-      'F' => Alienist::JavaFloat,
-      'D' => Alienist::JavaDouble,
-      'B' => Alienist::JavaByte,
-      'S' => Alienist::JavaShort,
-      'I' => Alienist::JavaInt,
-      'J' => Alienist::JavaLong
+      'L' => Alienist::Model::Java::JavaObjectRef, 
+      'Z' => Alienist::Model::Java::JavaBoolean, 
+      'C' => Alienist::Model::Java::JavaChar,
+      'F' => Alienist::Model::Java::JavaFloat,
+      'D' => Alienist::Model::Java::JavaDouble,
+      'B' => Alienist::Model::Java::JavaByte,
+      'S' => Alienist::Model::Java::JavaShort,
+      'I' => Alienist::Model::Java::JavaInt,
+      'J' => Alienist::Model::Java::JavaLong
     }
 
   end
