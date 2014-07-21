@@ -9,8 +9,12 @@ module Alienist
       def self.java_primitive(class_name, reader_method_name)
         class_eval <<-EOS
           class #{class_name} < Alienist::Model::Java::JavaPrimitive
+            def initialize(value)
+              super value
+            end
+
             def self.parse(reader)
-              new reader.#{reader_method_name}
+              reader.#{reader_method_name}
             end
           end
         EOS
