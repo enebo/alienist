@@ -9,8 +9,8 @@ module Alienist
       def self.java_primitive(class_name, reader_method_name)
         class_eval <<-EOS
           class #{class_name} < Alienist::Model::Java::JavaPrimitive
-            def initialize(value)
-              super value
+            def self.create(reader)
+              new parse(reader)
             end
 
             def self.parse(reader)
@@ -27,6 +27,7 @@ module Alienist
       java_primitive(:JavaFloat, :read_float)
       java_primitive(:JavaInt, :read_int)
       java_primitive(:JavaLong, :read_long)
+      java_primitive(:JavaObjectRef, :read_id) # Close enough to primitive
       java_primitive(:JavaShort, :read_short)
     end
   end
