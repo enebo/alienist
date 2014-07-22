@@ -1,4 +1,5 @@
 require 'alienist/model/java/java_class'
+require 'alienist/model/java/java_object'
 require 'alienist/model/java/java_field'
 require 'alienist/model/java/java_static'
 require 'alienist/snapshot/base_snapshot'
@@ -8,13 +9,14 @@ module Alienist
     class MemorySnapshot < Alienist::Snapshot::BaseSnapshot
       include Alienist::Model::Java
       
-      attr_reader :java_lang_class
+      attr_reader :java_lang_class, :instances
       
       def initialize
         super()
 
         @class_from_name = {}  # name -> model_obj:JavaClass
         @class_from_id = {}    # id   -> model_obj:JavaClass
+        @instances = []
       end
 
       def add_class(id, name, super_id, classloader_id, signers_id,
@@ -31,6 +33,13 @@ module Alienist
       def add_field(cls, name_id, signature)
         name = name name_id
         cls.fields[name] = JavaField.new name_id, name, signature
+      end
+
+      def add_instance(id, serial, class_id)
+        object = JavaObject.new id, serial, id2class(class_id)
+        @instances << object
+        
+        object
       end
 
       def add_static_field(cls, name_id, signature, value)
@@ -54,7 +63,10 @@ module Alienist
         @class_from_name.each do |name, cls|
           puts cls
         end
-
+        puts "Instances:"
+        @instances.each do |instance|
+          puts instance
+        end
       end
     end
   end
