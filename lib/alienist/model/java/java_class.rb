@@ -2,7 +2,7 @@ module Alienist
   module Model
     module Java
       class JavaClass
-        attr_reader :instances, :subclasses
+        attr_reader :instances, :subclasses, :fields, :static_fields, :name
         
         def initialize(snapshot, id, name, super_id, classloader_id, signers_id,
                        protection_domain_id, instance_size)
@@ -12,12 +12,16 @@ module Alienist
           @protection_domain_id, @instance_size = protection_domain_id, instance_size
           @instances = []
           @subclasses = []
+          @fields = {}
+          @static_fields = {}
         end
 
         # We resolve after all classes have been added to the system
         def resolve
           @super_class = @snapshot.id2class @super_id
-          @super_class.add_subclass self if @super_class
+          if @super_class
+            @super_class.add_subclass self
+          end
 
           @snapshot.java_lang_class.add_instance self
         end
@@ -31,7 +35,13 @@ module Alienist
         end
 
         def inspect
-          @name
+          <<-EOS
+Name: #{@name}
+  Fields : #{@fields.values.join(", ")}
+  SFields: #{@static_fields.values.join(", ")}
+  SClass: #{@super_class ? @super_class.name : ""}
+  subcls: #{@subclasses.map(&:name).join(", ")}
+EOS
         end
         alias :to_s :inspect
           

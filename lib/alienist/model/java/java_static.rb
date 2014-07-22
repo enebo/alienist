@@ -7,6 +7,11 @@ module Alienist
         def initialize(field, value)
           @field, @value = field, value
         end
+
+        def inspect
+          "#{field.name}:#{field.signature}"
+        end
+        alias :to_s :inspect
       end
     end
   end
