@@ -28,7 +28,7 @@ module Alienist
       @snapshot.parsing do
         loop do
           type = @io.read_type
-          return unless type # EOF
+          break unless type # EOF
           timestamp = @io.read_timestamp
           length = @io.read_int
 
@@ -158,7 +158,7 @@ module Alienist
 
     def read_primitive_array_dump
       read_section do |id, serial|
-        length, type_id = @io.read_int, @io.read_byte
+        length, type_id = @io.read_int, @io.read_type
         signature, element_size = signature_for type_id
         @io.skip_bytes length * element_size, "primitive_array_dump"
       end
@@ -202,7 +202,8 @@ module Alienist
         skip_constant_pool_entries(@io.read_unsigned_short)
 
         class_ref = @snapshot.add_class id, name, super_id, classloader_id,
-                        signers_id, protection_domain_id, instance_size
+                                        signers_id, protection_domain_id,
+                                        instance_size
 
         read_static_fields(class_ref, @io.read_unsigned_short)
         read_fields(class_ref, @io.read_unsigned_short)
@@ -211,13 +212,11 @@ module Alienist
 
     def read_value_for(type)
       TYPE_READS[type].parse @io
-    rescue
-      puts "Bad Type #{type}"
     end
 
     def read_static_fields(class_ref, count)
       count.times do   # process all static fields
-        name_id, type_id = @io.read_id, @io.read_byte
+        name_id, type_id = @io.read_id, @io.read_type
         type, _ = signature_for type_id
         value = read_value_for(type)
         @snapshot.add_static_field class_ref, name_id, type, value
@@ -248,8 +247,8 @@ module Alienist
     def skip_constant_pool_entries(count)
       count.times do                   # skip constant pool entries
         @io.read_unsigned_short        # skip index
-        type = @io.read_byte           # get type of value to skip
-        read_value_for type.chr        # skip value
+        type = @io.read_type           # get type of value to skip
+        read_value_for type            # skip value
       end
     end
 

@@ -43,8 +43,6 @@ module Alienist
       def parsing
         yield
         resolve
-      rescue
-        puts $!
       end
 
       ##

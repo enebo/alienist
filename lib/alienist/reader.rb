@@ -18,14 +18,13 @@ module Alienist
     end
 
     def read(amount, label="debug")
-      str = @io.read(amount)
+      str = @io.read amount
       puts "#{label}: '#{str}' (#{str.length})" if @debug >= 9 && str
       str
     end
 
     def read_boolean
-      value = read_byte('boolean')
-      value == '1'
+      read_byte('boolean') == '1'
     end
 
     def read_byte(label="byte")
@@ -35,7 +34,7 @@ module Alienist
     end
 
     def read_bytes(amount)
-      read(amount, "bytes")
+      read amount, "bytes"
     end
 
     def read_char(label='char')
@@ -79,20 +78,20 @@ module Alienist
     end
 
     def read_timestamp
-      read_int("timestamp")
+      read_int "timestamp"
     end
 
     def read_date
-      read_long("date") # Make a date or??
+      read_long "date"
     end
 
     def read_type
-      read_byte("type")
+      read_byte "type"
     end
 
     def skip_bytes(amount, label="")
       puts "skipping #{amount} for #{label}" if @debug >= 7
-      @io.seek(amount, IO::SEEK_CUR)
+      @io.seek amount, IO::SEEK_CUR
     end
   end
 end

@@ -39,7 +39,7 @@ filename = ARGV.shift
 abort "No filename provided" unless filename
 
 File.open(filename, "rb") do |io|
-  reader = Alienist::Reader.new(io, debug)
+  reader = Alienist::Reader.new io, debug
   dump = Alienist::Parser.new reader, backend.call, debug
   dump.parse
 end
