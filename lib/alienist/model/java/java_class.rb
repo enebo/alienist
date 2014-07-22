@@ -51,10 +51,10 @@ module Alienist
 
         def inspect
           <<-EOS
-Name: #{@name}
+Name: #{@name} #{@id}
   Fields : #{@fields.values.join(", ")}
   SFields: #{@static_fields.values.join(", ")}
-  SClass: #{@super_class ? @super_class.name : ""}
+  SClass: #{@super_class ? @super_class.name : ""} #{@super_id}
   subcls: #{@subclasses.map(&:name).join(", ")}
 EOS
         end

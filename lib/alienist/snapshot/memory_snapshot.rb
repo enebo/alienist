@@ -1,6 +1,8 @@
 require 'alienist/model/java/java_class'
 require 'alienist/model/java/java_primitives'
 require 'alienist/model/java/java_object'
+require 'alienist/model/java/java_object_array'
+require 'alienist/model/java/java_value_array'
 require 'alienist/model/java/java_field'
 require 'alienist/model/java/java_static'
 require 'alienist/snapshot/base_snapshot'
@@ -22,9 +24,8 @@ module Alienist
 
       def add_class(id, name, super_id, classloader_id, signers_id,
                     protection_domain_id, instance_size)
-        cls = Alienist::Model::Java::JavaClass.new self, id, name,
-             super_id, classloader_id, signers_id, protection_domain_id,
-             instance_size
+        cls = JavaClass.new self, id, name, super_id, classloader_id,
+                            signers_id, protection_domain_id, instance_size
         @class_from_name[name] = cls
         @class_from_id[id] = cls
 
@@ -41,6 +42,16 @@ module Alienist
         @instances[id] = object
         
         object
+      end
+
+      def add_object_array(id, serial, length, class_id, field_io_offset)
+        object = JavaObjectArray.new id, serial, length, class_id, field_io_offset
+        @instances[id] = object
+      end
+
+      def add_value_array(id, serial, length, signature, element_length, field_io_offset)
+        object = JavaValueArray.new id, serial, length, signature, element_length, field_io_offset
+        @instances[id] = object
       end
 
       def add_static_field(cls, name_id, signature, value)
@@ -64,7 +75,7 @@ module Alienist
       def resolve(parser)
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
-        @class_from_name.each { |name, cls| cls.resolve }
+        @class_from_id.each { |name, cls| cls.resolve }
         @instances.values.each { |instance| instance.resolve(parser, self) }
       end
 

@@ -75,10 +75,16 @@ module Alienist
       def add_instance(id, serial, class_id, field_io_offset)
       end
 
+      def add_object_array(id, serial, length, class_id, field_io_offset)
+      end
+
       def add_root(*r)
       end
 
       def add_static_field(class_ref, name_id, type, value)
+      end
+      
+      def add_value_array(id, serial, length, signature, element_length, field_io_offset)
       end
     end
   end
