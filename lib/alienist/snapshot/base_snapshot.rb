@@ -33,12 +33,24 @@ module Alienist
         @class_name_from_serial[serial]
       end
 
-
       ##
       # If a snapshot wants to wrap processing in a transaction or do
       # any other resource management then they can override this.
       def parsing
+        puts "AAAAAAA.1"
         yield
+        resolve
+      rescue
+        puts $!
+      ensure
+        resolve
+      end
+
+      ##
+      # After parsing has finished we can perform post-processing of
+      # data by overriding this methodx
+      def resolve
+        puts "AAAAA"
       end
 
       ##

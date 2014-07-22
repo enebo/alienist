@@ -27,6 +27,7 @@ module Alienist
       @io.identifier_size = @io.read_int
       creation_date = @io.read_date
       @snapshot.parsing do
+        puts "IN PARSING"
         loop do
           type = @io.read_type
           return unless type # EOF
@@ -169,7 +170,7 @@ module Alienist
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
 
-        puts "Instance of: #{@snapshot.id2cname(class_id)}"
+#        puts "Instance of: #{@snapshot.id2cname(class_id)}"
         @io.skip_bytes bytes_following, "instance_dump"
 
         # FIXME: Process Unclear if perhaps I should process greedily

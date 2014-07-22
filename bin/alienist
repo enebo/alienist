@@ -3,12 +3,15 @@
 require 'optparse'
 require 'alienist/parser'
 require 'alienist/reader'
+require 'alienist/snapshot/memory_snapshot'
 require 'alienist/snapshot/sequel_snapshot'
 
 debug = 0
 
+# FIXME: Use lambda to stuff require into it so we don't need world loaded.
 BACKENDS = {
-  'sequel' => Alienist::Snapshot::SequelSnapshot
+  'memory' => Alienist::Snapshot::MemorySnapshot,
+  'sequel' => Alienist::Snapshot::SequelSnapshot,
 }
 
 backend = BACKENDS['sequel']
