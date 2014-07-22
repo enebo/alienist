@@ -3,18 +3,24 @@
 require 'optparse'
 require 'alienist/parser'
 require 'alienist/reader'
-require 'alienist/snapshot/memory_snapshot'
-require 'alienist/snapshot/sequel_snapshot'
 
 debug = 0
 
 # FIXME: Use lambda to stuff require into it so we don't need world loaded.
 BACKENDS = {
-  'memory' => Alienist::Snapshot::MemorySnapshot,
-  'sequel' => Alienist::Snapshot::SequelSnapshot,
+  'memory' => lambda {
+    require 'alienist/snapshot/memory_snapshot'
+
+    Alienist::Snapshot::MemorySnapshot.new
+  },
+  'sequel' => lambda {
+    require 'alienist/snapshot/sequel_snapshot'
+
+    Alienist::Snapshot::SequelSnapshot.new
+  },
 }
 
-backend = BACKENDS['sequel']
+backend = BACKENDS['memory']
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: alienist [options] dump_file"
@@ -34,6 +40,6 @@ abort "No filename provided" unless filename
 
 File.open(filename, "rb") do |io|
   reader = Alienist::Reader.new(io, debug)
-  dump = Alienist::Parser.new reader, backend.new, debug
+  dump = Alienist::Parser.new reader, backend.call, debug
   dump.parse
 end
