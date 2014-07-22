@@ -22,7 +22,7 @@ module Alienist
           @super_class = @snapshot.id2class @super_id
           # all classes but java.lang.Object
           @super_class.add_subclass self if @super_class 
-#          @snapshot.java_lang_class.add_instance self
+          @snapshot.java_lang_class.add_instance self
         end
 
         def add_subclass(cls)
