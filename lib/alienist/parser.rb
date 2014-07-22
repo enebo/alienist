@@ -1,5 +1,4 @@
 require 'alienist/model/java/java_primitives'
-require 'alienist/model/java/java_object_ref'
 
 module Alienist
   class Parser
@@ -27,7 +26,6 @@ module Alienist
       @io.identifier_size = @io.read_int
       creation_date = @io.read_date
       @snapshot.parsing do
-        puts "IN PARSING"
         loop do
           type = @io.read_type
           return unless type # EOF
@@ -169,14 +167,29 @@ module Alienist
     def read_instance_dump
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
+        cls = @snapshot.id2class class_id
 
-#        puts "Instance of: #{@snapshot.id2cname(class_id)}"
-        @io.skip_bytes bytes_following, "instance_dump"
+        # To cut down on memory snapshots selectively cull the herd
+        if @snapshot.process_instance_of? cls
+          instance = @snapshot.add_instance id, serial, cls
 
-        # FIXME: Process Unclear if perhaps I should process greedily
-        # OR save offset and keep io open OR save blob in DB as part of this
-        @snapshot.add_instance(id, serial, class_id, bytes_following)
+          # FIXME: is2class is memory_snapshot and not base_snapshot.  Due
+          # to nature of processing this data we need class metadata.
+          # This means we might need to have minimal java model as part
+          # of base_snapshot.
+          instance.field_values = read_instance_fields cls
+        else
+          @io.skip_bytes bytes_following, "instance_dump"
+        end
       end
+    end
+
+    def read_instance_fields(cls)
+      field_values = []
+      cls.instance_fields do |arr, field|
+        field_values << TYPE_READS[field.signature].create(@io)
+      end
+      field_values
     end
 
     def read_class_dump
@@ -198,6 +211,8 @@ module Alienist
 
     def read_value_for(type)
       TYPE_READS[type].parse @io
+    rescue
+      puts "Bad Type #{type}"
     end
 
     def read_static_fields(class_ref, count)
@@ -231,9 +246,10 @@ module Alienist
     end
 
     def skip_constant_pool_entries(count)
-      count.times do            # skip constant pool entries
-        @io.read_unsigned_short # index - skip
-        @io.read_value_for 0    # value - skip
+      count.times do                   # skip constant pool entries
+        @io.read_unsigned_short        # skip index
+        type = @io.read_byte           # get type of value to skip
+        read_value_for type.chr        # skip value
       end
     end
 

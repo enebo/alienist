@@ -20,6 +20,10 @@ module Alienist
         @names[id]
       end
 
+      def process_instance_of?(cls)
+        false
+      end
+
       def register_name(id, name)
         @names[id] = name
       end
@@ -37,20 +41,16 @@ module Alienist
       # If a snapshot wants to wrap processing in a transaction or do
       # any other resource management then they can override this.
       def parsing
-        puts "AAAAAAA.1"
         yield
         resolve
       rescue
         puts $!
-      ensure
-        resolve
       end
 
       ##
       # After parsing has finished we can perform post-processing of
       # data by overriding this methodx
       def resolve
-        puts "AAAAA"
       end
 
       ##
@@ -67,7 +67,7 @@ module Alienist
       def add_field(class_ref, name_id, type)
       end
 
-      def add_instance(id, serial, class_id, bytes_following)
+      def add_instance(id, serial, cls)
       end
 
       def add_root(*r)
