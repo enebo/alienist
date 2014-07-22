@@ -21,7 +21,7 @@ module Alienist
       end
 
       def process_instance_of?(cls)
-        false
+        true
       end
 
       def register_name(id, name)
@@ -40,15 +40,15 @@ module Alienist
       ##
       # If a snapshot wants to wrap processing in a transaction or do
       # any other resource management then they can override this.
-      def parsing
+      def parsing(parser)
         yield
-        resolve
+        resolve parser
       end
 
       ##
       # After parsing has finished we can perform post-processing of
       # data by overriding this methodx
-      def resolve
+      def resolve(parser)
       end
 
       ##
@@ -65,7 +65,7 @@ module Alienist
       def add_field(class_ref, name_id, type)
       end
 
-      def add_instance(id, serial, cls)
+      def add_instance(id, serial, class_id, field_io_offset)
       end
 
       def add_root(*r)

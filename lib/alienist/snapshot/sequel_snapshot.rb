@@ -13,7 +13,7 @@ module Alienist
         create_schema      
       end
 
-      def add_instance(id, serial, class_id, bytes_following)
+      def add_instance(id, serial, class_id, field_io_offset)
         $ps1.call(id: id, class_id: class_id)
         #      @db[:instances].insert(id: id, class_id: class_id)
       end

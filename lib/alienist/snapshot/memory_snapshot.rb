@@ -35,8 +35,8 @@ module Alienist
         cls.fields[name] = JavaField.new name_id, name, signature
       end
 
-      def add_instance(id, serial, class_id)
-        object = JavaObject.new id, serial, id2class(class_id)
+      def add_instance(id, serial, class_id, field_io_offset)
+        object = JavaObject.new id, serial, class_id, field_io_offset
         @instances << object
         
         object
@@ -56,7 +56,7 @@ module Alienist
         @class_from_id[id]
       end
 
-      def resolve
+      def resolve(parser)
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_name.each { |name, cls| cls.resolve }
@@ -65,6 +65,7 @@ module Alienist
         end
         puts "Instances:"
         @instances.each do |instance|
+          instance.resolve(parser, self)
           puts instance
         end
       end

@@ -25,7 +25,7 @@ module Alienist
       version = read_version_header
       @io.identifier_size = @io.read_int
       creation_date = @io.read_date
-      @snapshot.parsing do
+      @snapshot.parsing(self) do
         loop do
           type = @io.read_type
           break unless type # EOF
@@ -167,26 +167,24 @@ module Alienist
     def read_instance_dump
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
-        cls = @snapshot.id2class class_id
 
-        # To cut down on memory snapshots selectively cull the herd
-        if @snapshot.process_instance_of? cls
-          instance = @snapshot.add_instance id, serial, cls
+        # We skip field values until whole system loaded so that
+        # all classes can be resolved.  we save position for that
+        # later parsing into the memory image for that object.
+        @io.skip_bytes bytes_following, "instance_dump"
 
-          # FIXME: is2class is memory_snapshot and not base_snapshot.  Due
-          # to nature of processing this data we need class metadata.
-          # This means we might need to have minimal java model as part
-          # of base_snapshot.
-          instance.field_values = read_instance_fields cls
-        else
-          @io.skip_bytes bytes_following, "instance_dump"
-        end
+        @snapshot.add_instance id, serial, class_id, @io.pos
       end
     end
 
-    def read_instance_fields(cls)
+    ##
+    # This is called by java_object after java_class data has been
+    # resolved.  This is not directly called during first phase of parse.
+    def read_instance_fields(cls, io_offset)
+      @io.seek io_offset # Move to the instance field data
+
       field_values = []
-      cls.instance_fields do |arr, field|
+      cls.instance_fields do |field|
         field_values << TYPE_READS[field.signature].create(@io)
       end
       field_values

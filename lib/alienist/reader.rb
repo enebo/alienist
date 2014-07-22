@@ -89,6 +89,10 @@ module Alienist
       read_byte "type"
     end
 
+    def seek(absolute_amount)
+      @io.seek absolute_amount, IO::SEEK_SET
+    end
+
     def skip_bytes(amount, label="")
       puts "skipping #{amount} for #{label}" if @debug >= 7
       @io.seek amount, IO::SEEK_CUR
