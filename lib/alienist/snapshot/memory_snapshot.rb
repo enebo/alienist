@@ -60,14 +60,7 @@ module Alienist
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_name.each { |name, cls| cls.resolve }
-        @class_from_name.each do |name, cls|
-          puts cls
-        end
-        puts "Instances:"
-        @instances.each do |instance|
-          instance.resolve(parser, self)
-          puts instance
-        end
+        @instances.each { |instance| instance.resolve(parser, self) }
       end
     end
   end

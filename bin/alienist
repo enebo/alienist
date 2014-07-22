@@ -21,15 +21,19 @@ BACKENDS = {
 }
 
 backend = BACKENDS['memory']
+console = false
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: alienist [options] dump_file"
-  opts.on("-d", "--debug value", "turn on debugging") do |v|
-    debug = v.to_i
-  end
   opts.on("-b", "--backend name", "Backend: #{BACKENDS.keys.join(', ')}") do |v|
     backend = BACKENDS[v]
     opts.usage "Valid backends: #{BACKENDS.keys.join(', ')}" unless backend
+  end
+  opts.on("-d", "--debug value", "turn on debugging") do |v|
+    debug = v.to_i
+  end
+  opts.on("-c", "--console", "make irb console after parsing") do
+    console = true
   end
 end
 opts.parse!(ARGV)
@@ -41,5 +45,10 @@ abort "No filename provided" unless filename
 File.open(filename, "rb") do |io|
   reader = Alienist::Reader.new io, debug
   dump = Alienist::Parser.new reader, backend.call, debug
-  dump.parse
+  snapshot = dump.parse
+  if console
+    require 'alienist/console'
+
+    IRB.start_session binding
+  end
 end

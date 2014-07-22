@@ -43,6 +43,7 @@ module Alienist
       def parsing(parser)
         yield
         resolve parser
+        self
       end
 
       ##
