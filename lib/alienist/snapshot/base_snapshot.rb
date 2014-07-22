@@ -53,6 +53,12 @@ module Alienist
       end
 
       ##
+      # Object by this point should be able to look up real values
+      # instead of pointers to those values.
+      def resolve_object_ref(id)
+      end
+
+      ##
       # returns something which can be used as an opaque pointer for
       # fields and static fields to be passed into add_field and
       # add_static_field.  Different snapshots may return different

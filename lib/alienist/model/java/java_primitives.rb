@@ -29,6 +29,13 @@ module Alienist
       java_primitive(:JavaLong, :read_long, 'long')
       java_primitive(:JavaObjectRef, :read_id, 'ref') # Close enough to prim.
       java_primitive(:JavaShort, :read_short, 'short')
+
+      class JavaNullClass < Alienist::Model::Java::JavaPrimitive
+        def initialize
+          super("null", "null")
+        end
+      end
+      JavaNull = JavaNullClass.new
     end
   end
 end

@@ -1,4 +1,5 @@
 require 'alienist/model/java/java_class'
+require 'alienist/model/java/java_primitives'
 require 'alienist/model/java/java_object'
 require 'alienist/model/java/java_field'
 require 'alienist/model/java/java_static'
@@ -14,9 +15,9 @@ module Alienist
       def initialize
         super()
 
-        @class_from_name = {}  # name -> model_obj:JavaClass
-        @class_from_id = {}    # id   -> model_obj:JavaClass
-        @instances = []
+        @class_from_name = {}  # name -> java_class
+        @class_from_id = {}    # id   -> java_class
+        @instances = {}        # id   -> java_object
       end
 
       def add_class(id, name, super_id, classloader_id, signers_id,
@@ -37,7 +38,7 @@ module Alienist
 
       def add_instance(id, serial, class_id, field_io_offset)
         object = JavaObject.new id, serial, class_id, field_io_offset
-        @instances << object
+        @instances[id] = object
         
         object
       end
@@ -64,8 +65,15 @@ module Alienist
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_name.each { |name, cls| cls.resolve }
-        @instances.each { |instance| instance.resolve(parser, self) }
+        @instances.values.each { |instance| instance.resolve(parser, self) }
       end
+
+      def resolve_object_ref(id)
+        return JavaNull if id == 0
+
+        @instances[id] # FIXME: Do I need to deal with unresolved objs?
+      end
+
     end
   end
 end

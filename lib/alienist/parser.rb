@@ -2,6 +2,8 @@ require 'alienist/model/java/java_primitives'
 
 module Alienist
   class Parser
+    include Alienist::Model::Java
+
     # Constants used in Java Heap Dumps.  The names map jhat constants.
     VERSION = "JAVA PROFILE 1.0.2\0"
     UNKNOWN, NATIVE_STATIC = 1, 4
@@ -183,11 +185,17 @@ module Alienist
     def read_instance_fields(cls, io_offset)
       @io.seek io_offset # Move to the instance field data
 
-      field_values = []
+      values = []
       cls.instance_fields do |field|
-        field_values << TYPE_READS[field.signature].create(@io)
+        value = TYPE_READS[field.signature].create(@io)
+        
+        if value.kind_of? JavaObjectRef # FIXME: don't want this if
+          value = @snapshot.resolve_object_ref value.value
+        end
+        
+        values << value
       end
-      field_values
+      values
     end
 
     def read_class_dump
