@@ -33,6 +33,7 @@ opts = OptionParser.new do |opts|
     debug = v.to_i
   end
   opts.on("-c", "--console", "make irb console after parsing") do
+    backend = BACKENDS['memory'] # FIXME: Once fleshed out more make any backend work.
     console = true
   end
 end
@@ -43,10 +44,12 @@ filename = ARGV.shift
 abort "No filename provided" unless filename
 
 File.open(filename, "rb") do |io|
+  start_time = Time.now
   reader = Alienist::Reader.new io, debug
   dump = Alienist::Parser.new reader, backend.call, debug
   snapshot = dump.parse
   if console
+    puts "Took #{Time.now - start_time}s to parser #{snapshot.instances.size} objects from #{snapshot.classes.size} classes."
     require 'alienist/console'
 
     IRB.start_session binding

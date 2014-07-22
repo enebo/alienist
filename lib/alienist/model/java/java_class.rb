@@ -41,6 +41,14 @@ module Alienist
           @super_class.instance_fields(&block) if @super_class
         end
 
+        def heap_order_field_names
+          names = @fields.keys
+          names_rest = @super_class ? @super_class.heap_order_field_names : nil
+          names.concat names_rest if names_rest # feeling dumb
+          names
+        end
+
+
         def inspect
           <<-EOS
 Name: #{@name}

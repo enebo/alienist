@@ -56,6 +56,10 @@ module Alienist
         @class_from_id[id]
       end
 
+      def classes
+        @class_from_id.values
+      end
+
       def resolve(parser)
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
