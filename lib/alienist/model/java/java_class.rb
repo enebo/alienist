@@ -3,6 +3,7 @@ module Alienist
     module Java
       class JavaClass
         attr_reader :instances, :subclasses, :fields, :static_fields, :name
+        attr_reader :total_field_count, :field_values
         
         def initialize(snapshot, id, name, super_id, classloader_id, signers_id,
                        protection_domain_id, instance_size)
@@ -19,10 +20,8 @@ module Alienist
         # We resolve after all classes have been added to the system
         def resolve
           @super_class = @snapshot.id2class @super_id
-          if @super_class
-            @super_class.add_subclass self
-          end
-
+          # all classes but java.lang.Object
+          @super_class.add_subclass self if @super_class 
           @snapshot.java_lang_class.add_instance self
         end
 
@@ -32,6 +31,14 @@ module Alienist
 
         def add_instance(object)
           @instances << object
+        end
+
+        ##
+        # Yield to all fields in this class and all superclasses to yield
+        # in reverse-natural-order (how heap stores field info)
+        def instance_fields(&block)
+          @fields.each { |field| block[field] }
+          @super_class.instance_fields(&block) if @super_class
         end
 
         def inspect
