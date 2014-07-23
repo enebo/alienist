@@ -12,10 +12,13 @@ module Alienist
 
         ##
         # Populate remaining data associated with this in-memory representation
-        def resolve(parser, snapshot)
+        def resolve(snapshot)
           @cls = snapshot.id2class(@class_id)
-          @field_values = parser.read_instance_fields @cls, @field_io_offset
           @cls.add_instance self
+        end
+
+        def resolve_fields(parser)
+          @field_values = parser.read_instance_fields @cls, @field_io_offset
         end
 
         ##

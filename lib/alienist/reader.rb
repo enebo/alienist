@@ -33,6 +33,16 @@ module Alienist
       byte.unpack('C')[0]
     end
 
+    def read_id2(label="id2")
+      val = 0
+      bytes = read_bytes @identifier_size
+      bytes.each_byte do |b|
+        val <<= 8
+        val |= b & 0xff
+      end
+      val
+    end
+
     def read_bytes(amount)
       read amount, "bytes"
     end

@@ -34,7 +34,7 @@ module Alienist
 
       def add_field(cls, name_id, signature)
         name = name name_id
-        cls.fields[name] = JavaField.new name_id, name, signature
+        cls.fields << JavaField.new(name_id, name, signature)
       end
 
       def add_instance(id, serial, class_id, field_io_offset)
@@ -76,13 +76,15 @@ module Alienist
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_id.each { |name, cls| cls.resolve }
-        @instances.values.each { |instance| instance.resolve(parser, self) }
+        @instances.values.each { |instance| instance.resolve(self) }
+        @instances.values.each { |instance| instance.resolve_fields(parser) }
       end
 
       def resolve_object_ref(id)
         return JavaNull if id == 0
 
-        @instances[id] # FIXME: Do I need to deal with unresolved objs?
+        value = @instances[id] || @class_from_id[id]
+        value
       end
 
     end

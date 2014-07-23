@@ -27,7 +27,7 @@ module Alienist
       java_primitive(:JavaFloat, :read_float, 'float')
       java_primitive(:JavaInt, :read_int, 'int')
       java_primitive(:JavaLong, :read_long, 'long')
-      java_primitive(:JavaObjectRef, :read_id, 'ref') # Close enough to prim.
+      java_primitive(:JavaObjectRef, :read_id2, 'ref') # Close enough to prim.
       java_primitive(:JavaShort, :read_short, 'short')
 
       class JavaNullClass < Alienist::Model::Java::JavaPrimitive

@@ -13,7 +13,7 @@ module Alienist
           @protection_domain_id, @instance_size = protection_domain_id, instance_size
           @instances = []
           @subclasses = []
-          @fields = {}
+          @fields = []
           @static_fields = {}
         end
 
@@ -37,12 +37,12 @@ module Alienist
         # Yield to all fields in this class and all superclasses to yield
         # in reverse-natural-order (how heap stores field info)
         def instance_fields(&block)
-          @fields.values.each { |field| block[field] }
+          @fields.each { |field| block[field] }
           @super_class.instance_fields(&block) if @super_class
         end
 
         def heap_order_field_names
-          names = @fields.keys
+          names = @fields.map(&:name)
           names_rest = @super_class ? @super_class.heap_order_field_names : nil
           names.concat names_rest if names_rest # feeling dumb
           names
@@ -52,7 +52,7 @@ module Alienist
         def inspect
           <<-EOS
 Name: #{@name} #{@id}
-  Fields : #{@fields.values.join(", ")}
+  Fields : #{@fields.join(", ")}
   SFields: #{@static_fields.values.join(", ")}
   SClass: #{@super_class ? @super_class.name : ""} #{@super_id}
   subcls: #{@subclasses.map(&:name).join(", ")}

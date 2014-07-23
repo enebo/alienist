@@ -174,12 +174,14 @@ module Alienist
       read_section do |id, serial|
         class_id, bytes_following = @io.read_id, @io.read_int
 
+        value_offset = @io.pos
         # We skip field values until whole system loaded so that
         # all classes can be resolved.  we save position for that
         # later parsing into the memory image for that object.
         @io.skip_bytes bytes_following, "instance_dump"
 
-        @snapshot.add_instance id, serial, class_id, @io.pos
+        puts "+I 0x#{id.to_s(16)} 0x#{class_id.to_s(16)}" if @debug > 10
+        @snapshot.add_instance id, serial, class_id, value_offset
       end
     end
 
@@ -187,13 +189,14 @@ module Alienist
     # This is called by java_object after java_class data has been
     # resolved.  This is not directly called during first phase of parse.
     def read_instance_fields(cls, io_offset)
-      @io.seek io_offset # Move to the instance field data
-
+      @io.seek io_offset  # Move to the instance field data
       values = []
       cls.instance_fields do |field|
         value = TYPE_READS[field.signature].create(@io)
 
         if value.kind_of? JavaObjectRef # FIXME: don't want this if
+          field.value_id = value.value
+          puts "+F 0x#{value.value.to_s(16)}" if @debug > 10
           value = @snapshot.resolve_object_ref value.value
         end
         
@@ -214,6 +217,8 @@ module Alienist
         class_ref = @snapshot.add_class id, name, super_id, classloader_id,
                                         signers_id, protection_domain_id,
                                         instance_size
+
+        puts "+C 0x#{id.to_s(16)} #{name}" if @debug > 10
 
         read_static_fields(class_ref, @io.read_unsigned_short)
         read_fields(class_ref, @io.read_unsigned_short)
