@@ -4,7 +4,6 @@ module Alienist
       class JavaClass
         attr_reader :instances, :subclasses, :fields, :static_fields, :name
         attr_reader :total_field_count, :field_values, :super_class
-        attr_reader :ruby_instances
         
         def initialize(snapshot, id, name, super_id, classloader_id, signers_id,
                        protection_domain_id, instance_size)
@@ -16,7 +15,6 @@ module Alienist
           @subclasses = []
           @fields = []
           @static_fields = {}
-          @ruby_instances = []
         end
 
         # We resolve after all classes have been added to the system

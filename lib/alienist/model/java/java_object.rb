@@ -4,10 +4,12 @@ module Alienist
       class JavaObject
         attr_reader :id, :name, :signature, :cls
         attr_accessor :field_values, :display_value
+        attr_reader :ruby_instances # FIXME:
 
         def initialize(id, serial, class_id, field_io_offset)
           @id, @serial, @class_id = id, serial, class_id
           @field_io_offset = field_io_offset
+          @ruby_instances = []
         end
 
         ##
