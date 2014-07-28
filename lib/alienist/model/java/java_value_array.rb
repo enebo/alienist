@@ -2,10 +2,10 @@ module Alienist
   module Model
     module Java
       class JavaValueArray
-        def initialize(id, serial, length, signature, element_size, field_io_offset)
-          @id, @serial, @length = id, serial, length
-          @signature, @element_size = signature, element_size
-          
+        attr_reader :field_values
+        
+        def initialize(id, serial, length, signature, field_io_offset)
+          @id, @serial, @length, @signature = id, serial, length, signature
           @field_io_offset = field_io_offset
         end
 
@@ -13,18 +13,15 @@ module Alienist
         # Populate remaining data associated with this in-memory representation
         def resolve(snapshot)
           @cls = snapshot.name2class('[' + @signature)
-
-          unless @cls
-            puts "Cannot find class_name #{ARRAY_TYPES[@signature]} for sig #{@signature}"
-            return
-          end
-          
-          # FIXME: read in raw value
-          # @field_values = parser.read_instance_fields @cls, @field_io_offset
           @cls.add_instance self
         end
 
-        def resolve_fields(parser)
+        def resolve_fields(parser, snapshot)
+          @field_values = parser.read_array_fields @cls, @field_io_offset, @length, @signature
+        end
+
+        def inspect
+          @field_values.inspect
         end
       end
     end

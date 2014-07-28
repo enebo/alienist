@@ -22,6 +22,15 @@ module Alienist
         @instances = {}        # id   -> java_object
       end
 
+      def pretty_display?(obj)
+        obj.cls.name == 'java.lang.String'
+      end
+
+
+      def create_pretty_display(obj)
+      end
+
+
       def add_class(id, name, super_id, classloader_id, signers_id,
                     protection_domain_id, instance_size)
         cls = JavaClass.new self, id, name, super_id, classloader_id,
@@ -49,9 +58,9 @@ module Alienist
         @instances[id] = object
       end
 
-      def add_value_array(id, serial, length, signature, element_length, field_io_offset)
-        object = JavaValueArray.new id, serial, length, signature, element_length, field_io_offset
-        @instances[id] = object
+      def add_value_array(id, serial, length, signature, field_io_offset)
+        array = JavaValueArray.new id, serial, length, signature, field_io_offset
+        @instances[id] = array
       end
 
       def add_static_field(cls, name_id, signature, value)
@@ -76,8 +85,8 @@ module Alienist
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_id.each { |name, cls| cls.resolve }
-        @instances.values.each { |instance| instance.resolve(self) }
-        @instances.values.each { |instance| instance.resolve_fields(parser) }
+        @instances.values.each { |instance| instance.resolve self }
+        @instances.values.each { |instance| instance.resolve_fields parser, self }
       end
 
       def resolve_object_ref(id)

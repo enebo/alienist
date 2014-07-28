@@ -164,7 +164,7 @@ module Alienist
       read_section do |id, serial|
         length, type_id = @io.read_int, @io.read_type
         signature, element_size = signature_for type_id
-        @snapshot.add_value_array id, serial, length, signature, element_size, @io.pos
+        @snapshot.add_value_array id, serial, length, signature, @io.pos
         
         @io.skip_bytes length * element_size, "primitive_array_dump"
       end
@@ -203,6 +203,17 @@ module Alienist
         values << value
       end
       values
+    end
+
+    ##
+    # This is called by java_value_object after java_class data has been
+    # resolved.  This is not directly called during first phase of parse.
+    def read_array_fields(cls, io_offset, length, signature)
+      @io.seek io_offset  # Move to the field data
+
+      element_size = TYPE_SIZES_MAP[signature]
+
+      bytes = @io.read_bytes(element_size * length)
     end
 
     def read_class_dump
@@ -273,6 +284,10 @@ module Alienist
 
     TYPES      = [nil, nil, 'L', nil, 'Z', 'C', 'F', 'D', 'B', 'S', 'I', 'J']
     TYPE_SIZES = [nil, nil, nil, nil,  1,   2,   4,   8,   1,   2,   4,   8]
+    TYPE_SIZES_MAP = { # L might be 4...maybe
+      'L' => 8, 'Z' => 1, 'C' => 2, 'F' => 4, 'D' => 8,
+      'B' => 1, 'S' => 2, 'I' => 4, 'J' => 8
+    }
     TYPE_READS = {
       'L' => Alienist::Model::Java::JavaObjectRef, 
       'Z' => Alienist::Model::Java::JavaBoolean, 

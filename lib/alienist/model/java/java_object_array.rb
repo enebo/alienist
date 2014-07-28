@@ -17,7 +17,7 @@ module Alienist
           @cls.add_instance self
         end
 
-        def resolve_fields(parser)
+        def resolve_fields(parser, snapshot)
         end
       end
     end
