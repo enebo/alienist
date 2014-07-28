@@ -12,7 +12,8 @@ module Alienist
     class MemorySnapshot < Alienist::Snapshot::BaseSnapshot
       include Alienist::Model::Java
       
-      attr_reader :java_lang_class, :instances
+      attr_reader :java_lang_class, :java_lang_string
+      attr_reader :instances
       
       def initialize
         super()
@@ -23,7 +24,7 @@ module Alienist
       end
 
       def pretty_display?(obj)
-        obj.cls.name == 'java.lang.String'
+        false
       end
 
 
@@ -35,6 +36,14 @@ module Alienist
                     protection_domain_id, instance_size)
         cls = JavaClass.new self, id, name, super_id, classloader_id,
                             signers_id, protection_domain_id, instance_size
+
+        case name
+        when 'java.lang.String'
+          @java_lang_string = cls
+        when 'java.lang.Class'
+          @java_lang_class = cls
+        end
+        
         @class_from_name[name] = cls
         @class_from_id[id] = cls
 

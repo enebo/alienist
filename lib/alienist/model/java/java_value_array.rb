@@ -18,6 +18,7 @@ module Alienist
 
         def resolve_fields(parser, snapshot)
           @field_values = parser.read_array_fields @cls, @field_io_offset, @length, @signature
+          @field_values = @field_values.force_encoding "UTF-16BE" if @field_values
         end
 
         def inspect
