@@ -5,6 +5,8 @@ module Alienist
     # This is using a base-class for this because the parser would be incapable
     # of executing if the snapshot did not have these methods.
     class BaseSnapshot
+      attr_accessor :minimum_object_size
+      
       def initialize
         @class_name_from_id = {}      # {id        -> class_name}
         @class_name_from_serial = {}  # {serial_no -> class_name}
@@ -85,7 +87,7 @@ module Alienist
       def add_field(class_ref, name_id, type)
       end
 
-      def add_instance(id, serial, class_id, field_io_offset)
+      def add_instance(id, serial, class_id, field_io_offset, length)
       end
 
       def add_object_array(id, serial, length, class_id, field_io_offset)

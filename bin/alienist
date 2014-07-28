@@ -53,5 +53,10 @@ File.open(filename, "rb") do |io|
     require 'alienist/console'
 
     IRB.start_session binding
+  else  # Assume dumping for now
+    require 'alienist/dumper/ruby_json_dumper'
+
+    # FIXME Hook up io explicitly
+    Alienist::Dumper::RubyJSONDumper.dump(snapshot)
   end
 end

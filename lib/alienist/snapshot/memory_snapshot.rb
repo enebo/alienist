@@ -24,13 +24,11 @@ module Alienist
         @instances = {}        # id   -> java_object
         @ruby_class_from_name = {} # name   -> ruby_class
         @name_from_ruby_class = {} # ruby_class -> name
-        @ruby_class_from_id = {}   # id   -> ruby_class
       end
 
       def pretty_display?(obj)
         false
       end
-
 
       def create_pretty_display(obj)
       end
@@ -59,8 +57,9 @@ module Alienist
         cls.fields << JavaField.new(name_id, name, signature)
       end
 
-      def add_instance(id, serial, class_id, field_io_offset)
-        object = JavaObject.new id, serial, class_id, field_io_offset
+      def add_instance(id, serial, class_id, field_io_offset, length)
+        object = JavaObject.new id, serial, class_id, field_io_offset,
+                                length + minimum_object_size
         @instances[id] = object
         
         object
@@ -82,12 +81,20 @@ module Alienist
         cls.static_fields[name] = JavaStatic.new field, value
       end
 
+      def ruby_name2class(name)
+        @ruby_class_from_name[name]
+      end
+
       def name2class(name)
         @class_from_name[name]
       end
 
       def id2class(id)
         @class_from_id[id]
+      end
+
+      def ruby_classes
+        @ruby_class_from_name
       end
 
       def classes

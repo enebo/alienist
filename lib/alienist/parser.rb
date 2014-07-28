@@ -26,6 +26,7 @@ module Alienist
     def parse
       version = read_version_header
       @io.identifier_size = @io.read_int
+      @snapshot.minimum_object_size = 2 * @io.identifier_size # Don't know the 2 ids?
       creation_date = @io.read_date
       @snapshot.parsing(self) do
         loop do
@@ -172,16 +173,16 @@ module Alienist
 
     def read_instance_dump
       read_section do |id, serial|
-        class_id, bytes_following = @io.read_id, @io.read_int
+        class_id, length = @io.read_id, @io.read_int
 
         value_offset = @io.pos
         # We skip field values until whole system loaded so that
         # all classes can be resolved.  we save position for that
         # later parsing into the memory image for that object.
-        @io.skip_bytes bytes_following, "instance_dump"
+        @io.skip_bytes length, "instance_dump"
 
         puts "+I 0x#{id.to_s(16)} 0x#{class_id.to_s(16)}" if @debug > 10
-        @snapshot.add_instance id, serial, class_id, value_offset
+        @snapshot.add_instance id, serial, class_id, value_offset, length
       end
     end
 
