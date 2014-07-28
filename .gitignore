@@ -8,3 +8,5 @@ dist
 nbproject/private
 pkg
 .ruby-version
+#*
+.#*
