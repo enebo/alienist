@@ -31,16 +31,19 @@ module Alienist
 #            puts "NMMM: #{snapshot.class2ruby_name(e)}"
             dump_type_data snapshot, obj.cls.name, e
           end
-        # when 'Fixnum'
-        #   obj.field('value').value
-        # when 'Float'
-        #   obj.field('value').value
+        when 'Fixnum'
+          obj.field('value').value
+#        when 'Float'
+#          obj.field('value').value
         when 'String'
           blobj = obj.field 'value'
           bytes = blobj.field('bytes').field_values
           beg = blobj.field('begin').value
           len = blobj.field('realSize').value
           bytes[beg...(len-beg)]
+        when 'Symbol'
+          str = obj.field('symbol')
+          str.field('value').field_values
         else
           ""
         end

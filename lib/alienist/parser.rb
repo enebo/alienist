@@ -223,10 +223,7 @@ module Alienist
     # resolved.  This is not directly called during first phase of parse.
     def read_array_fields(cls, io_offset, length, signature)
       @io.seek io_offset  # Move to the field data
-
-      element_size = TYPE_SIZES_MAP[signature]
-
-      bytes = @io.read_bytes(element_size * length)
+      @io.read_bytes TYPE_SIZES_MAP[signature] * length
     end
 
     def read_class_dump
