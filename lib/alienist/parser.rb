@@ -196,7 +196,6 @@ module Alienist
         value = TYPE_READS[field.signature].create(@io)
 
         if value.kind_of? JavaObjectRef # FIXME: don't want this if
-          field.value_id = value.value
           puts "+F 0x#{value.value.to_s(16)}" if @debug > 10
           value = @snapshot.resolve_object_ref value.value
         end
@@ -204,6 +203,19 @@ module Alienist
         values << value
       end
       values
+    end
+
+    # This is called by java_object_array after classes and objects have
+    # all been resolved.
+    def read_object_array(cls, io_offset, length)
+      @io.seek io_offset
+      array = []
+      length.times do
+        # All object arrays only contain java object refs
+        id = @io.read_id
+        array << @snapshot.resolve_object_ref(id)
+      end
+      array
     end
 
     ##

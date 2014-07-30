@@ -85,6 +85,10 @@ module Alienist
         @ruby_class_from_name[name]
       end
 
+      def class2ruby_name(cls)
+        @name_from_ruby_class[cls]
+      end
+      
       def name2class(name)
         @class_from_name[name]
       end
@@ -114,8 +118,7 @@ module Alienist
       def resolve_object_ref(id)
         return JavaNull if id == 0
 
-        value = @instances[id] || @class_from_id[id]
-        value
+        @instances[id] || @class_from_id[id]
       end
 
       ##### Probably all in some other abtraction but memory_snapshot is already
@@ -131,24 +134,16 @@ module Alienist
         end
 
         instances.values.find_all do |i|
-          i.respond_to? 'field'
-        end.find_all do |i|
-          i.field('metaClass')
-        end.find_all do |i|
-          i.field('metaClass').respond_to? 'fields'
+          i.respond_to?('field') && i.field('metaClass')
         end.each do |i|
           cls = i.field('metaClass')
-          cls_name = @name_from_ruby_class[cls]
-          if !cls
-            puts "Missing a Ruby class #{cls}"
-          else
-            cls.ruby_instances << i
-          end
+          cls = ruby_classes['BasicObject'] if !cls.respond_to? 'fields'
+          cls.ruby_instances << i
         end
 
-        @ruby_class_from_name.each do |n, v|
-          puts "Name: #{n}, Count: #{v.ruby_instances.length}"
-        end
+        #@ruby_class_from_name.each do |n, v|
+        #  puts "Name: #{n}, Count: #{v.ruby_instances.length}"
+        #end
       end
 
       # FIXME: We can try for cachedName but I am using sure thing even if slower
