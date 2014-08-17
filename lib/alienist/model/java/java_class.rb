@@ -2,7 +2,7 @@ module Alienist
   module Model
     module Java
       class JavaClass
-        attr_reader :instances, :subclasses, :fields, :static_fields, :name
+        attr_reader :instances, :subclasses, :fields, :static_fields, :name, :id
         attr_reader :total_field_count, :field_values, :super_class
         
         def initialize(snapshot, id, name, super_id, classloader_id, signers_id,

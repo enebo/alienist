@@ -34,6 +34,10 @@ module Alienist
         def initialize
           super("null", "null")
         end
+
+        def id
+          0
+        end
       end
       JavaNull = JavaNullClass.new
     end

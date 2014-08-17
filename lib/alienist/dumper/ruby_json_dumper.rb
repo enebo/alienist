@@ -9,8 +9,10 @@ module Alienist
         classes = []
         snapshot.ruby_classes.each do |name, cls|
           instances = cls.ruby_instances.inject([]) do |list, obj|
+            variables = dump_variables(name, cls, obj)
             list << {id: obj.id, size: obj.size,
-                     data: dump_type_data(snapshot, name, obj)}
+                     data: dump_type_data(snapshot, name, obj),
+                     variables: variables}
           end
 
           classes << {name: name, size: cls.size, id: cls.id,
@@ -18,6 +20,26 @@ module Alienist
         end
         
         io.puts JSON.generate classes
+      end
+
+      def self.dump_variables(snapshot, name, obj)
+        metaClass = obj.field('metaClass')
+
+        # BasicObject this is wrong
+        return [] unless metaClass.respond_to? :fields
+
+        vtm = metaClass.field('variableTableManager')
+        vn = vtm.field('variableNames')
+        names = vn.field_values.inject([]) do |list, str|
+          list << str.field('value').field_values
+        end
+
+        vt = obj.field('varTable')
+
+        # Deal with values stored elsewhere
+        return [] if vt == Alienist::Model::Java::JavaNull
+
+        names.zip(vt.field_values.map(&:id))
       end
 
       def self.dump_type_data(snapshot, name, obj)

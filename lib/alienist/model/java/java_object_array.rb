@@ -21,6 +21,10 @@ module Alienist
           @field_values = parser.read_object_array @cls, @field_io_offset, @length
         end
 
+        # Object[] can contain Ruby instances but it cannot be one itself
+        def resolve_ruby_instance(shapshot)
+        end
+
         def inspect
           "Obj[clsid=#{@class_id}, len=#{@length}]"
         end

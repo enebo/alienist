@@ -105,79 +105,25 @@ module Alienist
         @class_from_id.values
       end
 
+      def register_ruby_class(cls, name)
+        @ruby_class_from_name[name] = cls
+        @name_from_ruby_class[cls] = name
+      end
+
       def resolve(parser)
         # King of kings of all Java classes.  Special attr for easy access.
         @java_lang_class = name2class 'java.lang.Class'
         @class_from_id.each { |name, cls| cls.resolve }
         @instances.values.each { |instance| instance.resolve self }
         @instances.values.each { |instance| instance.resolve_fields parser, self }
-        #### Going all apeshit since it is getting out of control
-        resolve_ruby
+        classes.find {|c| c.name == "org.jruby.RubyClass"}.instances.each {|cls| cls.resolve_ruby_class self}
+        @instances.values.each { |instance| instance.resolve_ruby_instance self }
       end
 
       def resolve_object_ref(id)
         return JavaNull if id == 0
 
         @instances[id] || @class_from_id[id]
-      end
-
-      ##### Probably all in some other abtraction but memory_snapshot is already
-      ##### mucked over.
-
-      private
-      
-      def resolve_ruby
-        classes.find { |c| c.name == "org.jruby.RubyClass"}.instances.each do |c|
-          ruby_name = extract_ruby_name c
-          @ruby_class_from_name[ruby_name] = c
-          @name_from_ruby_class[c] = ruby_name
-        end
-
-        instances.values.find_all do |i|
-          i.respond_to?('field') && i.field('metaClass')
-        end.each do |i|
-          cls = i.field('metaClass')
-          cls = ruby_classes['BasicObject'] if !cls.respond_to? 'fields'
-          cls.ruby_instances << i
-        end
-
-        #@ruby_class_from_name.each do |n, v|
-        #  puts "Name: #{n}, Count: #{v.ruby_instances.length}"
-        #end
-      end
-
-      # FIXME: We can try for cachedName but I am using sure thing even if slower
-      def extract_ruby_name(cls)
-        base_name = base_name_of cls
-
-        return "ANON:IMPL_ME" unless base_name
-
-        # Likely incorrect if Foo::Object where this Object is not ::Object
-        return base_name if base_name == "Object"
-        return base_name if base_name == "BasicObject"
-
-        names = [base_name]
-
-        loop do
-          cls = cls.field 'parent'
-          base_name = base_name_of cls
-
-          break if !base_name || base_name == 'Object'
-          names << base_name
-        end
-
-        names.reverse.join '::'
-      end
-
-
-      def base_name_of(cls)
-        return nil if !cls || cls.kind_of?(JavaNullClass)
-        
-        base_name_field = cls.field 'baseName'
-
-        return nil if !base_name_field || !base_name_field.respond_to?(:field)
-        value = base_name_field.field 'value'
-        value && value.respond_to?(:field_values) ? value.field_values.encode("UTF-8") : nil
       end
     end
   end

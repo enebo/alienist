@@ -21,6 +21,10 @@ module Alienist
           @field_values = @field_values.force_encoding "UTF-16BE" if @field_values && @signature == 'C'
         end
 
+        # primitive arrays cannot be a ruby instance so noop
+        def resolve_ruby_instance(shapshot)
+        end
+
         def inspect
           @field_values.inspect
         end
