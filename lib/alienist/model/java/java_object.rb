@@ -11,6 +11,7 @@ module Alienist
         def initialize(id, serial, class_id, field_io_offset, size)
           @id, @serial, @class_id, @size = id, serial, class_id, size
           @field_io_offset = field_io_offset
+          @ruby_metaclass, @ruby_class = nil, false
           @ruby_instances = []
         end
 
@@ -26,6 +27,14 @@ module Alienist
             index += 1
           end
           nil
+        end
+
+        def field_path(first, *rest)
+          instance = field first
+          rest.inject(instance) do |instance, field_name|
+            return nil unless instance.respond_to? :field
+            instance.field field_name
+          end
         end
 
         ##
@@ -58,6 +67,7 @@ module Alienist
 
         def resolve_ruby_class(snapshot)
           snapshot.register_ruby_class self, ruby_name
+          @ruby_class = true
         end
 
         ##
@@ -66,6 +76,22 @@ module Alienist
           cls = field('metaClass') || return
           cls = snapshot.ruby_classes['BasicObject'] if !cls.respond_to? 'fields'
           cls.ruby_instances << self
+          @ruby_metaclass = cls
+        end
+
+        ##
+        # Returns a list of [:name => :java_object_id, ...].
+        def ruby_instance_variables
+          # BasicObject this is wrong.  They can have fields...
+          return [] unless @ruby_metaclass.respond_to? :fields
+
+          vn = @ruby_metaclass.field_path 'variableTableManager', 'variableNames'
+          names = vn.field_values.inject([]) do |list, str|
+            list << str.field('value').field_values
+          end
+
+          vt = field 'varTable'
+          vt == Alienist::Model::Java::JavaNull ? [] : names.zip(vt.field_values.map(&:id))
         end
 
         # FIXME: We can try for cachedName but I am using sure thing even if slower
@@ -75,8 +101,7 @@ module Alienist
           return "ANON:IMPL_ME" unless base_name
 
           # Likely incorrect if Foo::Object where this Object is not ::Object
-          return base_name if base_name == "Object"
-          return base_name if base_name == "BasicObject"
+          return base_name if base_name == "Object" || base_name == "BasicObject"
 
           names = [base_name]
 
@@ -96,10 +121,7 @@ module Alienist
         def base_name_of(cls)
           return nil if !cls || cls.kind_of?(JavaNullClass)
 
-          base_name_field = cls.field 'baseName'
-
-          return nil if !base_name_field || !base_name_field.respond_to?(:field)
-          value = base_name_field.field 'value'
+          value = cls.field_path 'baseName', 'value'
           value && value.respond_to?(:field_values) ? value.field_values.encode("UTF-8") : nil
         end
 
@@ -107,6 +129,10 @@ module Alienist
         # Does this Java Object represent a Ruby class
         def ruby_class?
           @ruby_class
+        end
+
+        def ruby_instance?
+          @ruby_metaclass
         end
       end
     end
