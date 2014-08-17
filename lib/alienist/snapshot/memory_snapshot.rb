@@ -5,7 +5,6 @@ require 'alienist/model/java/java_object_array'
 require 'alienist/model/java/java_value_array'
 require 'alienist/model/java/java_field'
 require 'alienist/model/java/java_static'
-require 'alienist/model/ruby/ruby_class'
 require 'alienist/snapshot/base_snapshot'
 
 module Alienist
