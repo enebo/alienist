@@ -7,7 +7,7 @@ module Alienist
         include Alienist::Model::RubyValueConverters
 
         attr_reader :id, :name, :signature, :cls, :size
-        attr_accessor :field_values, :display_value
+        attr_accessor :field_values
 
         # Ruby Classes are instances of a Java Object
         attr_reader :ruby_instances, :ruby_metaclass, :ruby_data_converter
@@ -50,7 +50,7 @@ module Alienist
         end
 
         def inspect
-          @display_value || "#{@id}:#{@cls ? @cls.name : "NOTHING"}"
+          "#{@id}:#{@cls ? @cls.name : "NOTHING"}"
         end
         alias :to_s :inspect
 
@@ -63,10 +63,6 @@ module Alienist
 
         def resolve_fields(parser, snapshot)
           @field_values = parser.read_instance_fields @cls, @field_io_offset
-
-          if snapshot.pretty_display? self
-            @display_value = snapshot.create_pretty_display self
-          end
         end
 
         def resolve_ruby_class(snapshot)

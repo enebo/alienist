@@ -25,14 +25,6 @@ module Alienist
         @name_from_ruby_class = {} # ruby_class -> name
       end
 
-      def pretty_display?(obj)
-        false
-      end
-
-      def create_pretty_display(obj)
-      end
-
-
       def add_class(id, name, super_id, classloader_id, signers_id,
                     protection_domain_id, instance_size)
         cls = JavaClass.new self, id, name, super_id, classloader_id,

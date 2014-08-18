@@ -22,19 +22,6 @@ module Alienist
         @names[id]
       end
 
-      ##
-      # Allow snapshot to make a user-friendly string representation
-      # of the object.
-      def create_pretty_display(obj)
-      end
-
-      ##
-      # Let snapshot determine whether a user-friendly string can replace
-      # the object when being displayed.
-      def pretty_display?(obj)
-        false
-      end
-
       def process_instance_of?(cls)
         true
       end
