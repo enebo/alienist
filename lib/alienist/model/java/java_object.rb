@@ -1,17 +1,21 @@
+require 'alienist/model/ruby_value_converters'
+
 module Alienist
   module Model
     module Java
       class JavaObject
+        include Alienist::Model::RubyValueConverters
+
         attr_reader :id, :name, :signature, :cls, :size
         attr_accessor :field_values, :display_value
 
         # Ruby Classes are instances of a Java Object
-        attr_reader :ruby_instances
+        attr_reader :ruby_instances, :ruby_metaclass, :ruby_data_converter
 
         def initialize(id, serial, class_id, field_io_offset, size)
           @id, @serial, @class_id, @size = id, serial, class_id, size
           @field_io_offset = field_io_offset
-          @ruby_metaclass, @ruby_class = nil, false
+          @ruby_metaclass, @ruby_class, @ruby_data_converter = nil, false, nil
           @ruby_instances = []
         end
 
@@ -66,7 +70,9 @@ module Alienist
         end
 
         def resolve_ruby_class(snapshot)
-          snapshot.register_ruby_class self, ruby_name
+          name = ruby_name
+          snapshot.register_ruby_class self, name
+          @ruby_data_converter = converter_for name
           @ruby_class = true
         end
 
@@ -77,6 +83,10 @@ module Alienist
           cls = snapshot.ruby_classes['BasicObject'] if !cls.respond_to? 'fields'
           cls.ruby_instances << self
           @ruby_metaclass = cls
+        end
+
+        def ruby_data_value
+          @ruby_metaclass.ruby_data_converter.call self
         end
 
         ##

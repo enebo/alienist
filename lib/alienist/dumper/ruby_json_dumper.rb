@@ -10,7 +10,7 @@ module Alienist
         snapshot.ruby_classes.each do |name, cls|
           instances = cls.ruby_instances.inject([]) do |list, obj|
             list << {id: obj.id, size: obj.size,
-                     data: dump_type_data(snapshot, name, obj),
+                     data: obj.ruby_data_value, #dump_type_data(snapshot, name, obj),
                      variables: obj.ruby_instance_variables}
           end
 
