@@ -4,9 +4,9 @@ module Alienist
       class JavaValueArray
         attr_reader :field_values
         
-        def initialize(id, serial, length, signature, field_io_offset)
+        def initialize(id, serial, length, signature, element_size, field_io_offset)
           @id, @serial, @length, @signature = id, serial, length, signature
-          @field_io_offset = field_io_offset
+          @element_size, @field_io_offset = element_size, field_io_offset
         end
 
         ##
@@ -23,6 +23,14 @@ module Alienist
 
         # primitive arrays cannot be a ruby instance so noop
         def resolve_ruby_instance(shapshot)
+        end
+
+        # primitive arrays cannot be a ruby instance so noop
+        def resolve_ruby_references(shapshot)
+        end
+
+        def size
+          @length * @element_size
         end
 
         def inspect

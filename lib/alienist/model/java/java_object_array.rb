@@ -4,9 +4,9 @@ module Alienist
       class JavaObjectArray
         attr_reader :field_values
         
-        def initialize(id, serial, length, class_id, field_io_offset)
+        def initialize(id, serial, length, class_id, element_size, field_io_offset)
           @id, @serial, @length, @class_id = id, serial, length, class_id
-          @field_io_offset = field_io_offset
+          @element_size, @field_io_offset = element_size, field_io_offset
         end
 
         ##
@@ -23,6 +23,14 @@ module Alienist
 
         # Object[] can contain Ruby instances but it cannot be one itself
         def resolve_ruby_instance(shapshot)
+        end
+
+        # Object[] can contain Ruby instances but it cannot be one itself
+        def resolve_ruby_references(shapshot)
+        end
+
+        def size
+          @length * @element_size
         end
 
         def inspect

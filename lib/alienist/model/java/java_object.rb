@@ -10,13 +10,14 @@ module Alienist
         attr_accessor :field_values
 
         # Ruby Classes are instances of a Java Object
-        attr_reader :ruby_instances, :ruby_metaclass, :ruby_data_converter
+        attr_reader :ruby_instances, :ruby_metaclass, :ruby_data_converter, :ruby_instance_variables
+        attr_reader :ruby_references
 
         def initialize(id, serial, class_id, field_io_offset, size)
           @id, @serial, @class_id, @size = id, serial, class_id, size
           @field_io_offset = field_io_offset
           @ruby_metaclass, @ruby_class, @ruby_data_converter = nil, false, nil
-          @ruby_instances = []
+          @ruby_instances, @ruby_references = [], []
         end
 
         ##
@@ -70,6 +71,7 @@ module Alienist
           snapshot.register_ruby_class self, name
           @ruby_data_converter = converter_for name
           @ruby_class = true
+          resolve_ruby_constants snapshot
         end
 
         ##
@@ -81,13 +83,38 @@ module Alienist
           @ruby_metaclass = cls
         end
 
+        def resolve_ruby_references(snapshot)
+          @ruby_constants = resolve_ruby_constants snapshot
+          @ruby_instance_variables = resolve_ruby_instance_variables
+
+          @ruby_instance_variables.each do |name, value|
+            referer = snapshot.instances[value]
+            #$stderr.puts "NAME: #{name}, ID: #{value}, RE: #{referer}"
+            referer.ruby_references << id if referer # FIXME: JI + null(0) need to be resolved
+          end
+
+          if @ruby_metaclass && @ruby_metaclass.ruby_data_converter
+
+          @ruby_metaclass.ruby_data_converter.references(self).each do |value|
+            referer = snapshot.instances[value]
+            $stderr.puts "NAME: #{name}, ID: #{value}, RE: #{referer}" unless referer
+            referer.ruby_references << id if referer # FIXME: JI + null(0) need to be resolved
+          end
+
+          end
+        end
+
+        def resolve_ruby_constants(snapshot)
+          # FIXME: conchashmap decoding?
+        end
+
         def ruby_data_value
-          @ruby_metaclass.ruby_data_converter.call self
+          @ruby_metaclass.ruby_data_converter.data self
         end
 
         ##
         # Returns a list of [:name => :java_object_id, ...].
-        def ruby_instance_variables
+        def resolve_ruby_instance_variables
           # BasicObject this is wrong.  They can have fields...
           return [] unless @ruby_metaclass.respond_to? :fields
 

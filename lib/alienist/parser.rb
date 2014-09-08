@@ -154,10 +154,11 @@ module Alienist
 
     def read_array_dump
       read_section do |id, serial|
+        element_size = @io.identifier_size
         length, class_id = @io.read_int, @io.read_id
-        @snapshot.add_object_array id, serial, length, class_id, @io.pos
+        @snapshot.add_object_array id, serial, length, class_id, element_size, @io.pos
         
-        @io.skip_bytes length * @io.identifier_size, "array_dump"
+        @io.skip_bytes length * element_size, "array_dump"
       end
     end
 
@@ -165,7 +166,7 @@ module Alienist
       read_section do |id, serial|
         length, type_id = @io.read_int, @io.read_type
         signature, element_size = signature_for type_id
-        @snapshot.add_value_array id, serial, length, signature, @io.pos
+        @snapshot.add_value_array id, serial, length, signature, element_size, @io.pos
         
         @io.skip_bytes length * element_size, "primitive_array_dump"
       end

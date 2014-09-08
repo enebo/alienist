@@ -3,22 +3,32 @@ require 'json'
 module Alienist
   module Dumper
     class RubyJSONDumper
-      # Hmmm I don't want to do this by hand but I need to not dump my
-      # entire POROs
       def self.dump(snapshot, io=$stdout)
         classes = []
         snapshot.ruby_classes.each do |name, cls|
           instances = cls.ruby_instances.inject([]) do |list, obj|
-            list << {id: obj.id, size: obj.size,
-                     data: obj.ruby_data_value, #dump_type_data(snapshot, name, obj),
-                     variables: obj.ruby_instance_variables}
+            instance_hash = {id: obj.id, size: obj.size}
+
+            data = obj.ruby_data_value
+            instance_hash[:data] = data if data
+
+            variables = obj.ruby_instance_variables
+            instance_hash[:variables] = variables unless variables.empty?
+
+            references = obj.ruby_references
+            instance_hash[:references] = references unless references.empty?
+
+            list << instance_hash
           end
 
-          classes << {name: name, size: cls.size, id: cls.id,
-                      instances: instances}
+          class_hash = {name: name, size: cls.size, id: cls.id}
+
+          class_hash[:instances] = instances unless instances.empty?
+
+          classes << class_hash
         end
         
-        io.puts JSON.generate classes
+        io.puts JSON.pretty_generate classes
       end
 
       def self.dump_type_data(snapshot, name, obj)

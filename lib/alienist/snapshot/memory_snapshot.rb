@@ -56,13 +56,13 @@ module Alienist
         object
       end
 
-      def add_object_array(id, serial, length, class_id, field_io_offset)
-        object = JavaObjectArray.new id, serial, length, class_id, field_io_offset
+      def add_object_array(id, serial, length, class_id, element_size, field_io_offset)
+        object = JavaObjectArray.new id, serial, length, class_id, element_size, field_io_offset
         @instances[id] = object
       end
 
-      def add_value_array(id, serial, length, signature, field_io_offset)
-        array = JavaValueArray.new id, serial, length, signature, field_io_offset
+      def add_value_array(id, serial, length, signature, element_size, field_io_offset)
+        array = JavaValueArray.new id, serial, length, signature, element_size, field_io_offset
         @instances[id] = array
       end
 
@@ -109,6 +109,7 @@ module Alienist
         @instances.values.each { |instance| instance.resolve_fields parser, self }
         classes.find {|c| c.name == "org.jruby.RubyClass"}.instances.each {|cls| cls.resolve_ruby_class self}
         @instances.values.each { |instance| instance.resolve_ruby_instance self }
+        @instances.values.each { |instance| instance.resolve_ruby_references self }
       end
 
       def resolve_object_ref(id)
